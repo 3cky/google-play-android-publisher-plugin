@@ -40,6 +40,7 @@ class ApkUploadTask extends TrackPublisherTask<Boolean> {
     private final List<UploadFile> appFilesToUpload;
     private final Map<Long, ExpansionFileSet> expansionFiles;
     private final boolean usePreviousExpansionFilesIfMissing;
+    private final boolean ackBundleInstallationWarning;
     private final RecentChanges[] recentChangeList;
     private final List<Long> existingVersionCodes;
     private long latestMainExpansionFileVersionCode;
@@ -48,13 +49,15 @@ class ApkUploadTask extends TrackPublisherTask<Boolean> {
     // TODO: Could be renamed
     ApkUploadTask(TaskListener listener, GoogleRobotCredentials credentials, String applicationId,
                   FilePath workspace, List<UploadFile> appFilesToUpload, Map<Long, ExpansionFileSet> expansionFiles,
-                  boolean usePreviousExpansionFilesIfMissing, ReleaseTrack track, double rolloutPercentage,
+                  boolean usePreviousExpansionFilesIfMissing, boolean ackBundleInstallationWarning,
+                  ReleaseTrack track, double rolloutPercentage,
                   ApkPublisher.RecentChanges[] recentChangeList) {
         super(listener, credentials, applicationId, track, rolloutPercentage);
         this.workspace = workspace;
         this.appFilesToUpload = appFilesToUpload;
         this.expansionFiles = expansionFiles;
         this.usePreviousExpansionFilesIfMissing = usePreviousExpansionFilesIfMissing;
+        this.ackBundleInstallationWarning = ackBundleInstallationWarning;
         this.recentChangeList = recentChangeList;
         this.existingVersionCodes = new ArrayList<>();
     }
@@ -109,7 +112,8 @@ class ApkUploadTask extends TrackPublisherTask<Boolean> {
             FileContent fileContent = new FileContent("application/octet-stream", fileToUpload);
             final long uploadedVersionCode;
             if (fileFormat == AppFileFormat.BUNDLE) {
-                Bundle uploadedBundle = editService.bundles().upload(applicationId, editId, fileContent).execute();
+                Bundle uploadedBundle = editService.bundles().upload(applicationId, editId, fileContent)
+                        .setAckBundleInstallationWarning(ackBundleInstallationWarning).execute();
                 uploadedVersionCode = uploadedBundle.getVersionCode();
                 uploadedVersionCodes.add(uploadedVersionCode);
             } else {

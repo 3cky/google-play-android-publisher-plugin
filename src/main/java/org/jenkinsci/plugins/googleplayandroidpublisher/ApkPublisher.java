@@ -56,6 +56,7 @@ public class ApkPublisher extends GooglePlayPublisher {
     private String deobfuscationFilesPattern;
     private String expansionFilesPattern;
     private boolean usePreviousExpansionFilesIfMissing;
+    private boolean ackBundleInstallationWarning;
     @VisibleForTesting String trackName;
     private Double rolloutPercent;
     private RecentChanges[] recentChangeList;
@@ -178,6 +179,19 @@ public class ApkPublisher extends GooglePlayPublisher {
 
     public boolean getUsePreviousExpansionFilesIfMissing() {
         return usePreviousExpansionFilesIfMissing;
+    }
+
+    public boolean getAckBundleInstallationWarning() {
+        return ackBundleInstallationWarning;
+    }
+
+    @DataBoundSetter
+    public void setAckBundleInstallationWarning(Boolean value) {
+        if (value == null) {
+            this.ackBundleInstallationWarning = false;
+        } else {
+            this.ackBundleInstallationWarning = value;
+        }
     }
 
     @DataBoundSetter
@@ -462,8 +476,9 @@ public class ApkPublisher extends GooglePlayPublisher {
         try {
             GoogleRobotCredentials credentials = getCredentialsHandler().getServiceAccountCredentials();
             return workspace.act(new ApkUploadTask(listener, credentials, applicationId, workspace, validFiles,
-                    expansionFiles, usePreviousExpansionFilesIfMissing, fromConfigValue(getCanonicalTrackName()),
-                    getRolloutPercent(), getExpandedRecentChangesList()));
+                    expansionFiles, usePreviousExpansionFilesIfMissing, ackBundleInstallationWarning,
+                    fromConfigValue(getCanonicalTrackName()), getRolloutPercent(),
+                    getExpandedRecentChangesList()));
         } catch (UploadException e) {
             logger.println(String.format("Upload failed: %s", getPublisherErrorMessage(e)));
             logger.println("No changes have been applied to the Google Play account");
